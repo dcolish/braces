@@ -4,16 +4,16 @@
 """
 This script supports publishing Pystache to PyPI.
 
-This docstring contains instructions to Pystache maintainers on how
-to release a new version of Pystache.
+This docstring contains instructions to Braces maintainers on how
+to release a new version of Braces.
 
-(1) Push to PyPI.  To release a new version of Pystache to PyPI--
+(1) Push to PyPI.  To release a new version of Braces to PyPI--
 
-    http://pypi.python.org/pypi/pystache
+    http://pypi.python.org/pypi/braces
 
 create a PyPI user account if you do not already have one.  The user account
 will need permissions to push to PyPI.  A current "Package Index Owner" of
-Pystache can grant you those permissions.
+Braces can grant you those permissions.
 
 When you have permissions, run the following (after preparing the release,
 merging to master, bumping the version number in setup.py, etc):
@@ -65,6 +65,7 @@ if py_version < (2, 3, 5):
     setup = core.setup
 else:
     import setuptools as dist
+    from setuptools import find_packages
     setup = dist.setup
 
 # TODO: use the logging module instead of printing.
@@ -72,7 +73,7 @@ else:
 # print("Using: version %s of %s" % (repr(dist.__version__), repr(dist)))
 
 
-VERSION = '0.5.2'  # Also change in pystache/__init__.py.
+VERSION = '0.5.2'  # Also change in braces/__init__.py.
 
 HISTORY_PATH = 'HISTORY.rst'
 LICENSE_PATH = 'LICENSE'
@@ -169,15 +170,15 @@ INSTALL_REQUIRES = requires
 
 # TODO: decide whether to use find_packages() instead.  I'm not sure that
 #   find_packages() is available with distutils, for example.
-PACKAGES = [
-    'pystache',
-    'pystache.commands',
-    # The following packages are only for testing.
-    'pystache.tests',
-    'pystache.tests.data',
-    'pystache.tests.data.locator',
-    'pystache.tests.examples',
-]
+# PACKAGES = [
+#     'braces',
+#     'braces.commands',
+#     # The following packages are only for testing.
+#     'tests',
+#     'tests.data',
+#     'tests.data.locator',
+#     'tests.examples',
+# ]
 
 
 def main(sys_argv):
@@ -185,30 +186,31 @@ def main(sys_argv):
     long_description = make_long_description()
     template_files = ['*.mustache', '*.txt']
 
-    setup(name='pystache',
+    setup(name='braces',
           version=VERSION,
           license='MIT',
           description='Mustache for Python',
           long_description=long_description,
           author='Chris Wanstrath',
           author_email='chris@ozmm.org',
-          maintainer='Chris Jerdonek',
-          url='http://github.com/defunkt/pystache',
+          maintainer='Dan Colish',
+          url='http://github.com/dcolish/braces',
           install_requires=INSTALL_REQUIRES,
-          packages=PACKAGES,
-          package_data = {
+          packages=find_packages(),
+          package_data={
               # Include template files so tests can be run.
-              'pystache.tests.data': template_files,
-              'pystache.tests.data.locator': template_files,
-              'pystache.tests.examples': template_files,
+              'braces.tests.data': template_files,
+              'braces.tests.data.locator': template_files,
+              'braces.tests.examples': template_files,
           },
-          entry_points = {
+          entry_points={
             'console_scripts': [
-                'pystache=pystache.commands.render:main',
-                'pystache-test=pystache.commands.test:main',
+                'braces=braces.commands.render:main',
+                'braces-test=braces.commands.test:main',
             ],
           },
-          classifiers = CLASSIFIERS,
+          classifiers=CLASSIFIERS,
+          test_suite='tests',
           **extra
     )
 

@@ -1,10 +1,10 @@
 ========
-Pystache
+Braces
 ========
 
 .. image:: https://s3.amazonaws.com/webdev_bucket/pystache.png
 
-Pystache_ is a Python implementation of Mustache_.
+Braces_ is a Python implementation of Mustache_.
 Mustache is a framework-agnostic, logic-free templating system inspired
 by ctemplate_ and et_.  Like ctemplate, Mustache "emphasizes
 separating logic from presentation: it is impossible to embed application
@@ -14,8 +14,8 @@ The `mustache(5)`_ man page provides a good introduction to Mustache's
 syntax.  For a more complete (and more current) description of Mustache's
 behavior, see the official `Mustache spec`_.
 
-Pystache is `semantically versioned`_ and can be found on PyPI_.  This
-version of Pystache passes all tests in `version 1.1.2`_ of the spec.
+Braces is `semantically versioned`_ and can be found on PyPI_.  This
+version of Braces passes all tests in `version 1.1.2`_ of the spec.
 
 Logo: `David Phillips`_
 
@@ -23,7 +23,7 @@ Logo: `David Phillips`_
 Requirements
 ============
 
-Pystache is tested with--
+Braces is tested with--
 
 * Python 2.4 (requires simplejson `version 2.0.9`_ or earlier)
 * Python 2.5 (requires simplejson_)
@@ -99,7 +99,7 @@ more information.
 Python 3
 ========
 
-Pystache has supported Python 3 since version 0.5.1.  Pystache behaves
+Braces has supported Python 3 since version 0.5.1.  Braces behaves
 slightly differently between Python 2 and 3, as follows:
 
 * In Python 2, the default html-escape function ``cgi.escape()`` does not
@@ -115,15 +115,15 @@ slightly differently between Python 2 and 3, as follows:
 Unicode
 =======
 
-This section describes how Pystache handles unicode, strings, and encodings.
+This section describes how Braces handles unicode, strings, and encodings.
 
-Internally, Pystache uses `only unicode strings`_ (``str`` in Python 3 and
-``unicode`` in Python 2).  For input, Pystache accepts both unicode strings
+Internally, Braces uses `only unicode strings`_ (``str`` in Python 3 and
+``unicode`` in Python 2).  For input, Braces accepts both unicode strings
 and byte strings (``bytes`` in Python 3 and ``str`` in Python 2).  For output,
-Pystache's template rendering methods return only unicode.
+Braces's template rendering methods return only unicode.
 
-Pystache's ``Renderer`` class supports a number of attributes to control how
-Pystache converts byte strings to unicode on input.  These include the
+Braces's ``Renderer`` class supports a number of attributes to control how
+Braces converts byte strings to unicode on input.  These include the
 ``file_encoding``, ``string_encoding``, and ``decode_errors`` attributes.
 
 The ``file_encoding`` attribute is the encoding the renderer uses to convert
@@ -142,7 +142,7 @@ using a keyword argument of the same name.  See the Renderer class's
 docstrings for further details.  In addition, the ``file_encoding``
 attribute can be controlled on a per-view basis by subclassing the
 ``TemplateSpec`` class.  When not specified explicitly, these attributes
-default to values set in Pystache's ``defaults`` module.
+default to values set in Braces's ``defaults`` module.
 
 
 Develop
@@ -152,7 +152,7 @@ To test from a source distribution (without installing)-- ::
 
     python test_pystache.py
 
-To test Pystache with multiple versions of Python (with a single command!),
+To test Braces with multiple versions of Python (with a single command!),
 you can use tox_: ::
 
     pip install tox
@@ -178,7 +178,7 @@ To run a subset of the tests, you can use nose_: ::
     pip install nose
     nosetests --tests pystache/tests/test_context.py:GetValueTests.test_dictionary__key_present
 
-**Running Pystache from source with Python 3.**  Pystache is written in
+**Running Braces from source with Python 3.**  Braces is written in
 Python 2 and must be converted with 2to3_ prior to running under Python 3.
 The installation process (and tox) do this conversion automatically.
 
@@ -187,7 +187,7 @@ be sure that you are importing from a directory containing a converted
 version (e.g. from your site-packages directory after manually installing)
 and not from the original source directory.  Otherwise, you will get a
 syntax error.  You can help ensure this by not running the Python IDE
-from the project directory when importing Pystache.
+from the project directory when importing Braces.
 
 
 Mailing List
@@ -222,7 +222,7 @@ Authors
 .. _nose: http://somethingaboutorange.com/mrl/projects/nose/0.11.1/testing.html
 .. _only unicode strings: http://docs.python.org/howto/unicode.html#tips-for-writing-unicode-aware-programs
 .. _PyPI: http://pypi.python.org/pypi/pystache
-.. _Pystache: https://github.com/defunkt/pystache
+.. _Braces: https://github.com/defunkt/pystache
 .. _PyYAML: http://pypi.python.org/pypi/PyYAML
 .. _Renderer: https://github.com/defunkt/pystache/blob/master/pystache/renderer.py
 .. _semantically versioned: http://semver.org
