@@ -65,19 +65,19 @@ class Parser(object):
     _delimiters = None
     _template_re = None
 
-    def __init__(self, engine, delimiters=None):
+    def __init__(self, renderer, delimiters=None):
         """
         Construct an instance.
 
         Arguments:
 
-          engine: a RenderEngine instance.
+          renderer: a Renderer instance.
 
         """
         if delimiters is None:
             delimiters = DEFAULT_DELIMITERS
 
-        self.engine = engine
+        self.renderer = renderer
         self.compile_template_re(delimiters)
 
     def compile_template_re(self, delimiters):
@@ -201,9 +201,162 @@ class Parser(object):
         return (parsed_section, template[start_index:content_end_index],
                 end_index)
 
+    def _make_get_section(self, name, parsed_template_, template_, delims):
+        def get_section(context):
+            """
+            Returns: a string of type unicode.
+
+            """
+            template = template_
+            parsed_template = parsed_template_
+            data = context.get(name)
+
+            # From the spec:
+            #
+            #   If the data is not of a list type, it is coerced into a list
+            #   as follows: if the data is truthy (e.g. `!!data == true`),
+            #   use a single-element list containing the data, otherwise use
+            #   an empty list.
+            #
+            if not data:
+                data = []
+            else:
+                # The least brittle way to determine whether something
+                # supports iteration is by trying to call iter() on it:
+                #
+                #   http://docs.python.org/library/functions.html#iter
+                #
+                # It is not sufficient, for example, to check whether the item
+                # implements __iter__ () (the iteration protocol).  There is
+                # also __getitem__() (the sequence protocol).  In Python 2,
+                # strings do not implement __iter__(), but in Python 3 they do.
+                try:
+                    iter(data)
+                except TypeError:
+                    # Then the value does not support iteration.
+                    data = [data]
+                else:
+                    if isinstance(data, (basestring, dict)):
+                        # Do not treat strings and dicts (which are iterable) as lists.
+                        data = [data]
+                    # Otherwise, treat the value as a list.
+
+            parts = []
+            for element in data:
+                if callable(element):
+                    # Lambdas special case section rendering and bypass pushing
+                    # the data value onto the context stack.  From the spec--
+                    #
+                    #   When used as the data value for a Section tag, the
+                    #   lambda MUST be treatable as an arity 1 function, and
+                    #   invoked as such (passing a String containing the
+                    #   unprocessed section contents).  The returned value
+                    #   MUST be rendered against the current delimiters, then
+                    #   interpolated in place of the section.
+                    #
+                    #  Also see--
+                    #
+                    #   https://github.com/defunkt/pystache/issues/113
+                    #
+                    # TODO: should we check the arity?
+                    new_template = element(template)
+                    new_parsed_template = self.parse(new_template)
+                    parts.append(new_parsed_template.render(context))
+                    continue
+
+                context.push(element)
+                parts.append(parsed_template.render(context))
+                context.pop()
+
+            return unicode(''.join(parts))
+
+        return get_section
+
+    # TODO: rename context to stack throughout this module.
+    def _get_string_value(self, context, tag_name):
+        """
+        Get a value from the given context as a basestring instance.
+
+        """
+        val = context.get(tag_name)
+
+        if callable(val):
+            # According to the spec:
+            #
+            #     When used as the data value for an Interpolation tag,
+            #     the lambda MUST be treatable as an arity 0 function,
+            #     and invoked as such.  The returned value MUST be
+            #     rendered against the default delimiters, then
+            #     interpolated in place of the lambda.
+            template = val()
+            if not isinstance(template, basestring):
+                # In case the template is an integer, for example.
+                template = str(template)
+            if type(template) is not unicode:
+                template = self.literal(template)
+            val = self._render(template, context)
+
+        if not isinstance(val, basestring):
+            val = str(val)
+
+        return val
+
+    def _make_get_literal(self, name):
+        def get_literal(context):
+            """
+            Returns: a string of type unicode.
+
+            """
+            s = self._get_string_value(context, name)
+            s = self.renderer.literal(s)
+            return s
+
+        return get_literal
+
+    def _make_get_escaped(self, name):
+
+        def get_escaped(context):
+            """
+            Returns: a string of type unicode.
+
+            """
+            s = self._get_string_value(context, name)
+            s = self.renderer.escape(s)
+            return s
+
+        return get_escaped
+
+    def _make_get_partial(self, template):
+        def get_partial(context):
+            """
+            Returns: a string of type unicode.
+
+            """
+            # TODO: the parsing should be done before calling this function.
+            parsed_template = self.parse(template)
+            return parsed_template.render(context)
+
+        return get_partial
+
+    def _make_get_inverse(self, name, parsed_template):
+        def get_inverse(context):
+            """
+            Returns a string with type unicode.
+
+            """
+            # TODO: is there a bug because we are not using the same
+            #   logic as in _get_string_value()?
+            data = context.get(name)
+            # Per the spec, lambdas in inverted sections are considered truthy.
+            if data:
+                return u''
+            return parsed_template.render(context)
+
+        return get_inverse
+
     def _handle_tag_type(self, template, parse_tree, tag_type, tag_key,
                          leading_whitespace, end_index):
-        engine = self.engine
+        renderer = self.renderer
 
         def _handle_change(end_index):
             delimiters = tag_key.split()
@@ -213,18 +366,17 @@ class Parser(object):
         def _handle_hash(end_index):
             parsed_section, section_contents, end_index = self._parse_section(
                 template, end_index, tag_key)
-            return end_index, engine._make_get_section(
+            return end_index, self._make_get_section(
                 tag_key, parsed_section, section_contents, self._delimiters)
 
         def _handle_caret(end_index):
             parsed_section, section_contents, end_index = self._parse_section(
                 template, end_index, tag_key)
-            return end_index, engine._make_get_inverse(tag_key, parsed_section)
+            return end_index, self._make_get_inverse(tag_key, parsed_section)
 
         def _handle_gt(end_index):
             try:
-                # TODO: make engine.load() and test it separately.
-                template = engine.load_partial(tag_key)
+                template = renderer.load_partial(tag_key)
             except TemplateNotFoundError:
                 template = u''
 
@@ -232,13 +384,13 @@ class Parser(object):
             template = re.sub(
                 NON_BLANK_RE, leading_whitespace + ur'\1', template)
 
-            return end_index, engine._make_get_partial(template)
+            return end_index, self._make_get_partial(template)
 
         dispatch = {
             '!': lambda x: (x, None),
             '=': _handle_change,
-            '': lambda x: (end_index, engine._make_get_escaped(tag_key)),
-            '&': lambda x: (end_index, engine._make_get_literal(tag_key)),
+            '': lambda x: (end_index, self._make_get_escaped(tag_key)),
+            '&': lambda x: (end_index, self._make_get_literal(tag_key)),
             '#': _handle_hash,
             '^': _handle_caret,
             '>': _handle_gt,

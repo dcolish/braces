@@ -11,7 +11,7 @@ from braces import defaults
 from braces.common import TemplateNotFoundError
 from braces.context import ContextStack
 from braces.loader import Loader
-from braces.renderengine import RenderEngine
+from braces.parser import Parser
 from braces.specloader import SpecLoader
 from braces.template_spec import TemplateSpec
 
@@ -131,10 +131,11 @@ class Renderer(object):
 
         self._context = None
         self.decode_errors = decode_errors
-        self.escape = escape
+        self._escape = escape
+
         self.file_encoding = file_encoding
         self.file_extension = file_extension
-
+        self.literal = self._to_unicode_hard
         self.loader = Loader(file_encoding=file_encoding,
                              extension=file_extension,
                              to_unicode=to_unicode,
@@ -142,6 +143,9 @@ class Renderer(object):
         self.partials = partials
         self.search_dirs = search_dirs
         self.string_encoding = string_encoding
+        self.parser = Parser(self)
+
+        self.load_partial = self._make_load_partial()
 
     # This is an experimental way of giving views access to the current context.
     # TODO: consider another approach of not giving access via a property,
@@ -155,6 +159,9 @@ class Renderer(object):
 
         """
         return self._context
+
+    def escape(self, s):
+        return self._escape_to_unicode(s)
 
     def _to_unicode_soft(self, s):
         """
@@ -181,7 +188,7 @@ class Renderer(object):
         Returns a unicode string (not subclass).
 
         """
-        return unicode(self.escape(self._to_unicode_soft(s)))
+        return unicode(self._escape(self._to_unicode_soft(s)))
 
     def unicode(self, b, encoding=None):
         """
@@ -235,18 +242,6 @@ class Renderer(object):
 
         return load_partial
 
-    def _make_render_engine(self):
-        """
-        Return a RenderEngine instance for rendering.
-
-        """
-        load_partial = self._make_load_partial()
-
-        engine = RenderEngine(load_partial=load_partial,
-                              literal=self._to_unicode_hard,
-                              escape=self._escape_to_unicode)
-        return engine
-
     # TODO: add unit tests for this method.
     def load_template(self, template_name):
         """
@@ -266,8 +261,16 @@ class Renderer(object):
         context = ContextStack.create(*context, **kwargs)
         self._context = context
 
-        engine = self._make_render_engine()
-        rendered = engine.render(template, context)
+        # We keep this type-check as an added check because this method is
+        # called with template strings coming from potentially externally-
+        # supplied functions like self.literal, self.load_partial, etc.
+        # Beyond this point, we have much better control over the type.
+        if type(template) is not unicode:
+            raise Exception("Argument 'template' not unicode: %s: %s" % (
+                    type(template), repr(template)))
+
+        parsed_template = self.parser.parse(template=template)
+        rendered = parsed_template.render(context)
 
         return unicode(rendered)
 

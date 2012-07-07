@@ -422,18 +422,16 @@ class Renderer_MakeRenderEngineTests(unittest.TestCase, AssertExceptionMixin):
         class MyUnicode(unicode):
             pass
 
-        renderer = Renderer()
-        renderer.string_encoding = 'ascii'
-        renderer.partials = {'str': 'foo', 'subclass': MyUnicode('abc')}
+        renderer = Renderer(string_encoding='ascii',
+                            partials={'str': 'foo',
+                                      'subclass': MyUnicode('abc')})
 
-        engine = renderer._make_render_engine()
-
-        actual = engine.load_partial('str')
+        actual = renderer.load_partial('str')
         self.assertEqual(actual, "foo")
         self.assertEqual(type(actual), unicode)
 
         # Check that unicode subclasses are not preserved.
-        actual = engine.load_partial('subclass')
+        actual = renderer.load_partial('subclass')
         self.assertEqual(actual, "abc")
         self.assertEqual(type(actual), unicode)
 
@@ -443,9 +441,7 @@ class Renderer_MakeRenderEngineTests(unittest.TestCase, AssertExceptionMixin):
 
         """
         renderer = Renderer()
-
-        engine = renderer._make_render_engine()
-        load_partial = engine.load_partial
+        load_partial = renderer.load_partial
 
         self.assertException(TemplateNotFoundError, "File 'foo.mustache' not found in dirs: ['.']",
                              load_partial, "foo")
@@ -455,11 +451,9 @@ class Renderer_MakeRenderEngineTests(unittest.TestCase, AssertExceptionMixin):
         Check that load_partial provides a nice message when a template is not found.
 
         """
-        renderer = Renderer()
-        renderer.partials = {}
+        renderer = Renderer(partials={})
 
-        engine = renderer._make_render_engine()
-        load_partial = engine.load_partial
+        load_partial = renderer.load_partial
 
         # Include dict directly since str(dict) is different in Python 2 and 3:
         #   <type 'dict'> versus <class 'dict'>, respectively.
@@ -476,8 +470,7 @@ class Renderer_MakeRenderEngineTests(unittest.TestCase, AssertExceptionMixin):
         renderer = self._make_renderer()
         renderer.unicode = mock_unicode
 
-        engine = renderer._make_render_engine()
-        literal = engine.literal
+        literal = renderer.literal
 
         b = u"foo".encode("ascii")
         self.assertEqual(literal(b), "FOO")
@@ -487,11 +480,9 @@ class Renderer_MakeRenderEngineTests(unittest.TestCase, AssertExceptionMixin):
         Test that literal doesn't try to "double decode" unicode.
 
         """
-        renderer = Renderer()
-        renderer.string_encoding = 'ascii'
+        renderer = Renderer(string_encoding='ascii')
 
-        engine = renderer._make_render_engine()
-        literal = engine.literal
+        literal = renderer.literal
 
         self.assertEqual(literal(u"foo"), "foo")
 
@@ -500,11 +491,8 @@ class Renderer_MakeRenderEngineTests(unittest.TestCase, AssertExceptionMixin):
         Test that literal returns unicode (and not a subclass).
 
         """
-        renderer = Renderer()
-        renderer.string_encoding = 'ascii'
-
-        engine = renderer._make_render_engine()
-        literal = engine.literal
+        renderer = Renderer(string_encoding='ascii')
+        literal = renderer.literal
 
         self.assertEqual(type(literal("foo")), unicode)
 
@@ -524,11 +512,8 @@ class Renderer_MakeRenderEngineTests(unittest.TestCase, AssertExceptionMixin):
         Test that escape uses the renderer's escape function.
 
         """
-        renderer = Renderer()
-        renderer.escape = lambda s: "**" + s
-
-        engine = renderer._make_render_engine()
-        escape = engine.escape
+        renderer = Renderer(escape=lambda s: "**" + s)
+        escape = renderer.escape
 
         self.assertEqual(escape("foo"), "**foo")
 
@@ -539,9 +524,7 @@ class Renderer_MakeRenderEngineTests(unittest.TestCase, AssertExceptionMixin):
         """
         renderer = Renderer()
         renderer.unicode = mock_unicode
-
-        engine = renderer._make_render_engine()
-        escape = engine.escape
+        escape = renderer.escape
 
         b = u"foo".encode('ascii')
         self.assertEqual(escape(b), "FOO")
@@ -551,11 +534,8 @@ class Renderer_MakeRenderEngineTests(unittest.TestCase, AssertExceptionMixin):
         Test that escape receives strings with the unicode subclass intact.
 
         """
-        renderer = Renderer()
-        renderer.escape = lambda s: unicode(type(s).__name__)
-
-        engine = renderer._make_render_engine()
-        escape = engine.escape
+        renderer = Renderer(escape=lambda s: unicode(type(s).__name__))
+        escape = renderer.escape
 
         class MyUnicode(unicode):
             pass
@@ -569,11 +549,8 @@ class Renderer_MakeRenderEngineTests(unittest.TestCase, AssertExceptionMixin):
         Test that literal returns unicode (and not a subclass).
 
         """
-        renderer = Renderer()
-        renderer.string_encoding = 'ascii'
-
-        engine = renderer._make_render_engine()
-        escape = engine.escape
+        renderer = Renderer(string_encoding='ascii')
+        escape = renderer.escape
 
         self.assertEqual(type(escape("foo")), unicode)
 
@@ -586,4 +563,3 @@ class Renderer_MakeRenderEngineTests(unittest.TestCase, AssertExceptionMixin):
         self.assertEqual(type(s), MyUnicode)
         self.assertTrue(isinstance(s, unicode))
         self.assertEqual(type(escape(s)), unicode)
-
