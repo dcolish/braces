@@ -49,4 +49,3 @@ class ParsedTemplate(object):
         s = ''.join(parts)
 
         return unicode(s)
-

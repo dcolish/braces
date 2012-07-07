@@ -23,7 +23,8 @@ from braces.template_spec import TemplateSpec
 if sys.version_info < (3, ):
     _STRING_TYPES = basestring
 else:
-    # The latter evaluates to "bytes" in Python 3 -- even after conversion by 2to3.
+    # The latter evaluates to "bytes" in Python 3 -- even after conversion by
+    # 2to3.
     _STRING_TYPES = (unicode, type(u"a".encode('utf-8')))
 
 
@@ -129,6 +130,7 @@ class Renderer(object):
 
         if to_unicode is None:
             to_unicode = self.unicode
+
         if not literal:
             literal = self._to_unicode_hard
 
@@ -186,7 +188,8 @@ class Renderer(object):
 
     def _escape_to_unicode(self, s):
         """
-        Convert a basestring to unicode (preserving any unicode subclass), and escape it.
+        Convert a basestring to unicode (preserving any unicode subclass), and
+        escape it.
 
         Returns a unicode string (not subclass).
 
@@ -195,7 +198,8 @@ class Renderer(object):
 
     def unicode(self, b, encoding=None):
         """
-        Convert a byte string to unicode, using string_encoding and decode_errors.
+        Convert a byte string to unicode, using string_encoding and
+        decode_errors.
 
         Arguments:
 
@@ -222,14 +226,14 @@ class Renderer(object):
 
     def _make_load_partial(self):
         """
-        Return the load_partial function to pass to RenderEngine.__init__().
+        Return the load_partial function.
 
         """
         if self.partials is None:
             return self.loader.load_name
 
         # Otherwise, create a load_partial function from the custom partial
-        # loader that satisfies RenderEngine requirements (and that provides
+        # loader that satisfies Render requirements (and that provides
         # a nicer exception, etc).
         partials = self.partials
 
@@ -237,8 +241,9 @@ class Renderer(object):
             template = partials.get(name)
 
             if template is None:
-                raise TemplateNotFoundError("Name %s not found in partials: %s" %
-                                            (repr(name), type(partials)))
+                raise TemplateNotFoundError(
+                    "Name %s not found in partials: %s" %
+                    (repr(name), type(partials)))
 
             # RenderEngine requires that the return value be unicode.
             return self._to_unicode_hard(template)
