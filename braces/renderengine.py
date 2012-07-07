@@ -5,9 +5,7 @@ Defines a class responsible for rendering logic.
 
 """
 
-import re
-
-from braces.parser import Parser
+from braces.parser import DEFAULT_DELIMITERS, Parser
 
 
 class RenderEngine(object):
@@ -63,6 +61,7 @@ class RenderEngine(object):
         self.escape = escape
         self.literal = literal
         self.load_partial = load_partial
+        self.parser = Parser(self)
 
     # TODO: rename context to stack throughout this module.
     def _get_string_value(self, context, tag_name):
@@ -106,7 +105,6 @@ class RenderEngine(object):
         return get_literal
 
     def _make_get_escaped(self, name):
-        get_literal = self._make_get_literal(name)
 
         def get_escaped(context):
             """
@@ -204,7 +202,7 @@ class RenderEngine(object):
                     #
                     #  Also see--
                     #
-                    #   https://github.com/defunkt/braces/issues/113
+                    #   https://github.com/defunkt/pystache/issues/113
                     #
                     # TODO: should we check the arity?
                     new_template = element(template)
@@ -220,7 +218,7 @@ class RenderEngine(object):
 
         return get_section
 
-    def _parse(self, template, delimiters=None):
+    def _parse(self, template, delimiters=DEFAULT_DELIMITERS):
         """
         Parse the given template, and return a ParsedTemplate instance.
 
@@ -229,10 +227,8 @@ class RenderEngine(object):
           template: a template string of type unicode.
 
         """
-        parser = Parser(self, delimiters=delimiters)
-        parser.compile_template_re()
-
-        return parser.parse(template=template)
+        self.parser.compile_template_re(delimiters)
+        return self.parser.parse(template=template)
 
     def _render(self, template, context):
         """

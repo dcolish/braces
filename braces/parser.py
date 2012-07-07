@@ -77,15 +77,12 @@ class Parser(object):
         if delimiters is None:
             delimiters = DEFAULT_DELIMITERS
 
-        self._delimiters = delimiters
         self.engine = engine
+        self.compile_template_re(delimiters)
 
-    def compile_template_re(self):
-        self._template_re = _compile_template_re(self._delimiters)
-
-    def _change_delimiters(self, delimiters):
+    def compile_template_re(self, delimiters):
         self._delimiters = delimiters
-        self.compile_template_re()
+        self._template_re = _compile_template_re(delimiters)
 
     def parse(self, template, start_index=0, section_key=None):
         """
@@ -195,20 +192,22 @@ class Parser(object):
             including any trailing newlines).
 
         """
-        parsed_section, content_end_index, end_index = \
-            self.parse(template=template, start_index=start_index, section_key=section_key)
+        parsed_section, content_end_index, end_index = (
+            self.parse(template=template,
+                       start_index=start_index,
+                       section_key=section_key)
+            )
 
-        return parsed_section, template[start_index:content_end_index], end_index
+        return (parsed_section, template[start_index:content_end_index],
+                end_index)
 
     def _handle_tag_type(self, template, parse_tree, tag_type, tag_key,
                          leading_whitespace, end_index):
-
-        # TODO: switch to using a dictionary instead of a bunch of ifs and elifs.
         engine = self.engine
 
         def _handle_change(end_index):
             delimiters = tag_key.split()
-            self._change_delimiters(delimiters)
+            self.compile_template_re(delimiters)
             return end_index, None
 
         def _handle_hash(end_index):
