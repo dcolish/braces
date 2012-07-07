@@ -24,6 +24,10 @@ class SimpleObject(object):
         return "called..."
 
 
+class NestedObject(object):
+    meh = SimpleObject()
+
+
 class DictLike(object):
 
     """A sample class that implements __getitem__() and __contains__()."""

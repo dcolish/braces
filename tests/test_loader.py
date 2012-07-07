@@ -53,9 +53,6 @@ class LoaderTests(unittest.TestCase, AssertStringMixin, SetupDefaults):
         loader = Loader()
         self.assertRaises(TypeError, loader.to_unicode, u"abc")
 
-        decode_errors = defaults.DECODE_ERRORS
-        string_encoding = defaults.STRING_ENCODING
-
         nonascii = u'abcdé'.encode('utf-8')
 
         loader = Loader()
@@ -68,7 +65,6 @@ class LoaderTests(unittest.TestCase, AssertStringMixin, SetupDefaults):
         defaults.STRING_ENCODING = 'utf-8'
         loader = Loader()
         self.assertString(loader.to_unicode(nonascii), u'abcdé')
-
 
     def _get_path(self, filename):
         return os.path.join(DATA_DIR, filename)

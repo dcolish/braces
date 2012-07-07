@@ -17,7 +17,7 @@ from braces.common import TemplateNotFoundError
 from braces.loader import Loader
 
 from tests.common import get_data_path, AssertStringMixin, AssertExceptionMixin
-from tests.data.views import SayHello
+from tests.data.views import NestedObject, SayHello
 
 
 def _make_renderer():
@@ -360,6 +360,12 @@ class RendererTests(unittest.TestCase, AssertStringMixin):
 
         actual = renderer.render(say_hello, to='Mars')
         self.assertEqual('Hello, Mars', actual)
+
+    def test_render__dotted_path(self):
+        renderer = Renderer()
+        template = "{{meh.foo}}"
+        actual = renderer.render(template, NestedObject())
+        self.assertEqual(actual, 'bar')
 
     def test_render__template_spec(self):
         """

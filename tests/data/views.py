@@ -19,3 +19,11 @@ class SampleView(TemplateSpec):
 
 class NonAscii(TemplateSpec):
     pass
+
+
+class SomeObject(object):
+    foo = 'bar'
+
+
+class NestedObject(object):
+    meh = SomeObject()
