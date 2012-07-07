@@ -49,7 +49,8 @@ class Renderer(object):
 
     def __init__(self, file_encoding=None, string_encoding=None,
                  decode_errors=None, search_dirs=None, file_extension=None,
-                 escape=None, partials=None, to_unicode=None):
+                 escape=None, partials=None, to_unicode=None,
+                 literal=None):
         """
         Construct an instance.
 
@@ -128,6 +129,8 @@ class Renderer(object):
 
         if to_unicode is None:
             to_unicode = self.unicode
+        if not literal:
+            literal = self._to_unicode_hard
 
         self._context = None
         self.decode_errors = decode_errors
@@ -135,7 +138,7 @@ class Renderer(object):
 
         self.file_encoding = file_encoding
         self.file_extension = file_extension
-        self.literal = self._to_unicode_hard
+        self.literal = literal
         self.loader = Loader(file_encoding=file_encoding,
                              extension=file_extension,
                              to_unicode=to_unicode,
