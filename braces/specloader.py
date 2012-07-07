@@ -38,7 +38,7 @@ class SpecLoader(object):
             return os.path.split(spec.template_rel_path)
         # Otherwise, determine the file name separately.
 
-        locator = self.loader._make_locator()
+        locator = self.loader.locator
 
         # We do not use the ternary operator for Python 2.4 support.
         if spec.template_name is not None:
@@ -46,7 +46,8 @@ class SpecLoader(object):
         else:
             template_name = locator.make_template_name(spec)
 
-        file_name = locator.make_file_name(template_name, spec.template_extension)
+        file_name = locator.make_file_name(
+            template_name, spec.template_extension)
 
         return (spec.template_rel_directory, file_name)
 
@@ -57,11 +58,12 @@ class SpecLoader(object):
         """
         dir_path, file_name = self._find_relative(spec)
 
-        locator = self.loader._make_locator()
+        locator = self.loader.locator
 
         if dir_path is None:
             # Then we need to search for the path.
-            path = locator.find_object(spec, self.loader.search_dirs, file_name=file_name)
+            path = locator.find_object(
+                spec, self.loader.search_dirs, file_name=file_name)
         else:
             obj_dir = locator.get_object_directory(spec)
             path = os.path.join(obj_dir, dir_path, file_name)

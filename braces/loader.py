@@ -5,9 +5,6 @@ This module provides a Loader class for locating and reading templates.
 
 """
 
-import os
-import sys
-
 from braces import common
 from braces import defaults
 from braces.locator import Locator
@@ -16,16 +13,14 @@ from braces.locator import Locator
 # We make a function so that the current defaults take effect.
 # TODO: revisit whether this is necessary.
 
-def _make_to_unicode():
-    def to_unicode(s, encoding=None):
-        """
-        Raises a TypeError exception if the given string is already unicode.
+def default_unicode(s, encoding=None):
+    """
+    Raises a TypeError exception if the given string is already unicode.
 
-        """
-        if encoding is None:
-            encoding = defaults.STRING_ENCODING
-        return unicode(s, encoding, defaults.DECODE_ERRORS)
-    return to_unicode
+    """
+    if encoding is None:
+        encoding = defaults.STRING_ENCODING
+    return unicode(s, encoding, defaults.DECODE_ERRORS)
 
 
 class Loader(object):
@@ -73,16 +68,14 @@ class Loader(object):
             search_dirs = defaults.SEARCH_DIRS
 
         if to_unicode is None:
-            to_unicode = _make_to_unicode()
+            to_unicode = default_unicode
 
         self.extension = extension
         self.file_encoding = file_encoding
         # TODO: unit test setting this attribute.
         self.search_dirs = search_dirs
         self.to_unicode = to_unicode
-
-    def _make_locator(self):
-        return Locator(extension=self.extension)
+        self.locator = Locator(extension=self.extension)
 
     def unicode(self, s, encoding=None):
         """
@@ -131,9 +124,7 @@ class Loader(object):
           search_dirs: the list of directories in which to search.
 
         """
-        locator = self._make_locator()
-
-        path = locator.find_name(name, self.search_dirs)
+        path = self.locator.find_name(name, self.search_dirs)
 
         return self.read(path)
 
@@ -149,8 +140,6 @@ class Loader(object):
           search_dirs: the list of directories in which to search.
 
         """
-        locator = self._make_locator()
-
-        path = locator.find_object(obj, self.search_dirs)
+        path = self.locator.find_object(obj, self.search_dirs)
 
         return self.read(path)
